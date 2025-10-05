@@ -1,10 +1,10 @@
 {
-  "name": "n8n-nodes-ionos-imap",
+  "name": "n8n-nodes-imap-manager",
   "version": "0.2.0",
-  "description": "Local n8n node to manage IONOS (or any IMAP) mail: search by Message-ID, add keywords, move, copy, delete.",
+  "description": "n8n node to manage IMAP mail: search by Message-ID, add keywords, move, copy, delete.",
   "author": "James Forwood",
   "license": "MIT",
-  "keywords": ["n8n-community-node","imap","ionos","imapflow"],
+  "keywords": ["n8n-community-node","imap","imap-manager","imapflow"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

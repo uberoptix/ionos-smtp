@@ -1,6 +1,6 @@
 # n8n-nodes-imap-manager
 
-Local-only community node to manage IONOS (or any IMAP) mail with imapflow:
+Community node to manage IMAP mail with imapflow:
 - Search by RFC822 Message-ID → get UID
 - Add/Remove keywords (IMAP flags)
 - Move, Copy, Delete by UID
@@ -8,11 +8,11 @@ Local-only community node to manage IONOS (or any IMAP) mail with imapflow:
 ## Prereqs
 - Node.js ≥ 18
 - n8n self-hosted
-- IONOS IMAP details (host: imap.ionos.com, port: 993, TLS)
+- IMAP host, port, TLS enabled (e.g., imap.example.com:993)
 
 ## Install from the Community Catalog
 
-In n8n, go to Settings → Community Nodes → Install, search for `n8n-nodes-ionos-imap`, and install. Restart n8n if prompted.
+In n8n, go to Settings → Community Nodes → Install, search for `n8n-nodes-imap-manager`, and install. Restart n8n if prompted.
 
 ## Node: IMAP Manager
 Properties:
@@ -25,8 +25,8 @@ Properties:
 
 ## Examples
 Lookup UID by message-id then add keywords:
-1) IONOS IMAP (Search by Message-ID) → RFC822 Message-ID: `={{$json.messageId}}`
-2) IONOS IMAP (Add Keywords) → UID: `={{$json.uids[0]}}`
+1) IMAP Manager (Search by Message-ID) → RFC822 Message-ID: `={{$json.messageId}}`
+2) IMAP Manager (Add Keywords) → UID: `={{$json.uids[0]}}`
 
 ## Notes
 - Custom keywords require server support of `*` in PERMANENTFLAGS.
