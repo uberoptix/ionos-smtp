@@ -32,7 +32,7 @@ export class IonosImap implements INodeType {
     displayName: 'IMAP Manager',
     name: 'imapManager',
     group: ['transform'],
-    icon: 'fa:inbox',
+    icon: 'file:imap-manager.svg',
     version: 1,
     description: 'Manage mail via IMAP (works with IONOS or any IMAP server): search, add keywords, move, copy, delete',
     defaults: { name: 'IMAP Manager' },
