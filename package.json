@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-ionos-imap",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Local n8n node to manage IONOS (or any IMAP) mail: search by Message-ID, add keywords, move, copy, delete.",
   "author": "James Forwood",
   "license": "MIT",

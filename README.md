@@ -1,4 +1,4 @@
-# n8n-nodes-ionos-imap
+# n8n-nodes-imap-manager
 
 Local-only community node to manage IONOS (or any IMAP) mail with imapflow:
 - Search by RFC822 Message-ID → get UID
@@ -14,9 +14,9 @@ Local-only community node to manage IONOS (or any IMAP) mail with imapflow:
 
 In n8n, go to Settings → Community Nodes → Install, search for `n8n-nodes-ionos-imap`, and install. Restart n8n if prompted.
 
-## Node: IONOS IMAP
+## Node: IMAP Manager
 Properties:
-- Operation: Search by Message-ID | Add Keywords | Remove Keywords | Move | Copy | Delete
+- Operation: List Mailboxes | Search by Message-ID | Add Keywords | Remove Keywords | Move | Copy | Delete
 - Mailbox: default INBOX
 - RFC822 Message-ID: e.g. `<abc123@example.com>`
 - UID: for actions
@@ -31,4 +31,4 @@ Lookup UID by message-id then add keywords:
 ## Notes
 - Custom keywords require server support of `*` in PERMANENTFLAGS.
 - Create multiple IMAP credentials, one per mailbox.
- - This package contains no secrets or example credentials.
+- This package contains no secrets or example credentials.

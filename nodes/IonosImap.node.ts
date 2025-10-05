@@ -29,13 +29,13 @@ async function openMailbox(client: ImapFlow, mailbox: string): Promise<MailboxLo
 
 export class IonosImap implements INodeType {
   description: INodeTypeDescription = {
-    displayName: 'IONOS IMAP',
-    name: 'ionosImap',
+    displayName: 'IMAP Manager',
+    name: 'imapManager',
     group: ['transform'],
-    icon: 'fa:envelope',
+    icon: 'fa:inbox',
     version: 1,
-    description: 'Manage mail via IMAP (IONOS or any IMAP server): search, add keywords, move, copy, delete',
-    defaults: { name: 'IONOS IMAP' },
+    description: 'Manage mail via IMAP (works with IONOS or any IMAP server): search, add keywords, move, copy, delete',
+    defaults: { name: 'IMAP Manager' },
     inputs: ['main' as unknown as NodeConnectionType],
     outputs: ['main' as unknown as NodeConnectionType],
     credentials: [{ name: 'imapCredentials', required: true }],
@@ -45,6 +45,7 @@ export class IonosImap implements INodeType {
         name: 'operation',
         type: 'options',
         options: [
+          { name: 'List Mailboxes', value: 'listMailboxes', description: 'List available mailboxes/folders' },
           { name: 'Search by Message-ID', value: 'searchByMessageId', description: 'Find UIDs by RFC822 Message-ID' },
           { name: 'Add Keywords (Tags)', value: 'addKeywords', description: 'Add IMAP keywords (custom tags) to message' },
           { name: 'Remove Keywords', value: 'removeKeywords', description: 'Remove IMAP keywords from message' },
@@ -54,7 +55,18 @@ export class IonosImap implements INodeType {
         ],
         default: 'searchByMessageId',
       },
-      { displayName: 'Mailbox', name: 'mailbox', type: 'string', default: 'INBOX' },
+      { displayName: 'Mailbox', name: 'mailbox', type: 'string', default: 'INBOX', displayOptions: { show: { operation: ['searchByMessageId','addKeywords','removeKeywords','move','copy','delete'] } } },
+
+      // List Mailboxes
+      {
+        displayName: 'Name Filter (optional)',
+        name: 'mailboxFilter',
+        type: 'string',
+        default: '',
+        placeholder: 'e.g. Sales or INBOX/',
+        displayOptions: { show: { operation: ['listMailboxes'] } },
+        description: 'Case-insensitive substring to filter mailbox paths',
+      },
 
       // Search
       {
@@ -102,10 +114,35 @@ export class IonosImap implements INodeType {
 
     for (let i = 0; i < items.length; i++) {
       const op = this.getNodeParameter('operation', i) as string;
-      const mailbox = this.getNodeParameter('mailbox', i) as string;
+      const mailbox = (op !== 'listMailboxes') ? (this.getNodeParameter('mailbox', i) as string) : '';
 
       const client = await getClient.call(this);
       try {
+        if (op === 'listMailboxes') {
+          const filter = ((this.getNodeParameter('mailboxFilter', i) as string) || '').toLowerCase();
+          const boxes = await client.list();
+          const mailboxes: any[] = [];
+          for (const box of boxes as any[]) {
+            const info = {
+              path: box.path,
+              name: box.name,
+              flags: Array.isArray((box as any).flags) ? (box as any).flags : [],
+              specialUse: (box as any).specialUse || '',
+              delimiter: (box as any).delimiter,
+              listed: true,
+            };
+            if (!filter || info.path.toLowerCase().includes(filter) || info.name.toLowerCase().includes(filter)) {
+              mailboxes.push(info);
+            }
+          }
+          // Emit one item per mailbox so users can select/map downstream
+          if (mailboxes.length === 0) {
+            out.push({ json: { mailboxes: [] } });
+          } else {
+            for (const m of mailboxes) out.push({ json: m });
+          }
+        }
+
         if (op === 'searchByMessageId') {
           const messageId = this.getNodeParameter('messageId', i) as string;
           if (!messageId) throw new NodeOperationError(this.getNode(), 'messageId is required', { itemIndex: i });
