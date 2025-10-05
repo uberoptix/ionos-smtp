@@ -1,0 +1,51 @@
+{
+  "name": "n8n-nodes-ionos-imap",
+  "version": "0.1.1",
+  "description": "Local n8n node to manage IONOS (or any IMAP) mail: search by Message-ID, add keywords, move, copy, delete.",
+  "author": "James Forwood",
+  "license": "MIT",
+  "keywords": ["n8n-community-node","imap","ionos","imapflow"],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "imapflow": "^1.0.144"
+  },
+  "devDependencies": {
+    "n8n-core": "^1.64.0",
+    "n8n-workflow": "^1.64.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uberoptix/ionos-smtp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uberoptix/ionos-smtp/issues"
+  },
+  "homepage": "https://github.com/uberoptix",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "n8n": {
+    "credentials": [
+      "dist/credentials/IMapCredentials.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/IonosImap.node.js"
+    ]
+  }
+}
+
