@@ -8,6 +8,7 @@ import type {
 import { NodeConnectionType } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { ImapFlow, type MailboxLockObject } from 'imapflow';
+import nodemailer from 'nodemailer';
 
 async function getClient(this: IExecuteFunctions) {
   const cred = await this.getCredentials('imapCredentials') as any;
@@ -38,7 +39,7 @@ export class IonosImap implements INodeType {
     defaults: { name: 'IMAP Manager' },
     inputs: ['main' as unknown as NodeConnectionType],
     outputs: ['main' as unknown as NodeConnectionType],
-    credentials: [{ name: 'imapCredentials', required: true }],
+    credentials: [{ name: 'imapCredentials', required: true }, { name: 'smtpCredentials', required: false }],
     properties: [
       {
         displayName: 'Operation',
@@ -51,7 +52,8 @@ export class IonosImap implements INodeType {
           { name: 'Remove Keywords', value: 'removeKeywords', description: 'Remove IMAP keywords from message' },
           { name: 'Move', value: 'move', description: 'Move message to another mailbox' },
           { name: 'Copy', value: 'copy', description: 'Copy message to another mailbox' },
-          { name: 'Delete', value: 'delete', description: 'Delete message' }
+          { name: 'Delete', value: 'delete', description: 'Delete message' },
+          { name: 'Redirect', value: 'redirect', description: 'Re-send the message to another address without forward headers' }
         ],
         default: 'searchByMessageId',
       },
@@ -104,6 +106,23 @@ export class IonosImap implements INodeType {
         type: 'string',
         default: 'Archive',
         displayOptions: { show: { operation: ['move','copy'] } },
+      },
+
+      // Redirect
+      {
+        displayName: 'Redirect To (email)',
+        name: 'redirectTo',
+        type: 'string',
+        default: '',
+        displayOptions: { show: { operation: ['redirect'] } },
+      },
+      {
+        displayName: 'From Override (optional)',
+        name: 'fromOverride',
+        type: 'string',
+        default: '',
+        displayOptions: { show: { operation: ['redirect'] } },
+        description: 'If empty, uses SMTP credential default or original From',
       },
     ],
   };
@@ -207,6 +226,42 @@ export class IonosImap implements INodeType {
             const seq = { uid: String(uid) };
             await client.messageDelete(seq, { uid: true });
             out.push({ json: { mailbox, uid, deleted: true } });
+          } finally {
+            lock.release();
+          }
+        }
+
+        if (op === 'redirect') {
+          const uid = this.getNodeParameter('uid', i) as number;
+          const redirectTo = this.getNodeParameter('redirectTo', i) as string;
+          if (!uid) throw new NodeOperationError(this.getNode(), 'uid is required', { itemIndex: i });
+          if (!redirectTo) throw new NodeOperationError(this.getNode(), 'redirectTo is required', { itemIndex: i });
+
+          const lock = await openMailbox(client, mailbox);
+          try {
+            const seq = String(uid);
+            const msg = await client.fetchOne(seq, { source: true } as any, { uid: true } as any);
+            const raw = (msg as any && (msg as any).source) as Buffer | undefined;
+            if (!raw) throw new NodeOperationError(this.getNode(), 'Failed to fetch raw message', { itemIndex: i });
+
+            const smtp = await this.getCredentials('smtpCredentials').catch(() => null) as any;
+            if (!smtp) throw new NodeOperationError(this.getNode(), 'SMTP credentials are required for Redirect', { itemIndex: i });
+
+            const transporter = nodemailer.createTransport({
+              host: smtp.host,
+              port: smtp.port,
+              secure: smtp.secure,
+              auth: { user: smtp.user, pass: smtp.password },
+            });
+
+            // We will set envelope only to avoid modifying headers; nodemailer accepts a raw stream with envelope
+            const fromHeader = (this.getNodeParameter('fromOverride', i) as string) || smtp.from || undefined;
+            const info = await transporter.sendMail({
+              envelope: { from: fromHeader, to: [redirectTo] },
+              raw,
+            });
+
+            out.push({ json: { mailbox, uid, redirectedTo: redirectTo, messageId: info.messageId || null } });
           } finally {
             lock.release();
           }
