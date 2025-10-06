@@ -17,7 +17,6 @@ In n8n, go to Settings → Community Nodes → Install, search for `n8n-nodes-im
 ## Node: IMAP Manager
 Properties:
 - Operation: List Mailboxes | Search by Message-ID | Add Keywords | Remove Keywords | Move | Copy | Delete
-  | Redirect (re-send without forward headers)
 - Mailbox: default INBOX
 - RFC822 Message-ID: e.g. `<abc123@example.com>`
 - UID: for actions
@@ -29,11 +28,9 @@ Lookup UID by message-id then add keywords:
 1) IMAP Manager (Search by Message-ID) → RFC822 Message-ID: `={{$json.messageId}}`
 2) IMAP Manager (Add Keywords) → UID: `={{$json.uids[0]}}`
 
-Redirect an email to another address:
-1) Provide SMTP Credentials
-2) IMAP Manager (Redirect) → Mailbox: `INBOX`, UID: `={{$json.uid}}`, Redirect To: `ops@example.com`
+Redirect functionality has been removed in this version; use Move/Copy or your SMTP workflow.
 
 ## Notes
 - Custom keywords require server support of `*` in PERMANENTFLAGS.
-- Create multiple IMAP credentials, one per mailbox.
+- Use standard `IMAP Credentials`. This package contains no SMTP functionality.
 - This package contains no secrets or example credentials.

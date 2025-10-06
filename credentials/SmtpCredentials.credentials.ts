@@ -2,7 +2,7 @@ import type { IAuthenticateGeneric, ICredentialType, INodeProperties } from 'n8n
 
 export class SmtpCredentials implements ICredentialType {
   name = 'smtpCredentials';
-  displayName = 'SMTP Credentials';
+  displayName = 'SMTP Credentials (Send/Redirect)';
   properties: INodeProperties[] = [
     { displayName: 'Host', name: 'host', type: 'string', default: '' },
     { displayName: 'Port', name: 'port', type: 'number', default: 465 },
