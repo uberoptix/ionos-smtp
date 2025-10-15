@@ -1,14 +1,20 @@
 {
   "name": "n8n-nodes-imap-manager",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "n8n node to manage IMAP mail: search by Message-ID, add keywords, move, copy, delete.",
   "author": "James Forwood",
   "license": "MIT",
-  "keywords": ["n8n-community-node","imap","imap-manager","imapflow"],
+  "keywords": [
+    "n8n-community-node",
+    "imap",
+    "imap-manager",
+    "imapflow"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc -p tsconfig.json",
     "postbuild": "cp nodes/imap-manager.svg dist/nodes/"
   },
   "dependencies": {
@@ -17,6 +23,7 @@
     "n8n-workflow": "^1.64.0"
   },
   "devDependencies": {
+    "rimraf": "^6.0.1",
     "typescript": "^5.4.0"
   },
   "engines": {
@@ -48,4 +55,3 @@
     ]
   }
 }
-
