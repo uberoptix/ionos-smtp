@@ -23,6 +23,11 @@ Properties:
 - Keywords: comma-separated for add/remove
 - Destination Mailbox: for Move/Copy
 
+Error Output:
+- The node now has a second output labeled "Error". If you set "Require Account Matches Credential User" and provide an "Account Field", items where the upstream account (e.g., `{{$json.account}}`) does not match the selected credential's user are routed to the Error output with:
+  - `error`: `credential_mismatch` | `credential_not_found`
+  - `account`, `credentialUser`, `itemIndex`
+
 ## Examples
 Lookup UID by message-id then add keywords:
 1) IMAP Manager (Search by Message-ID) → RFC822 Message-ID: `={{$json.messageId}}`

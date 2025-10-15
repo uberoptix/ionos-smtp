@@ -37,7 +37,8 @@ export class IonosImap implements INodeType {
     description: 'Manage mail via IMAP (works with IONOS or any IMAP server): search, add keywords, move, copy, delete',
     defaults: { name: 'IMAP Manager' },
     inputs: ['main' as unknown as NodeConnectionType],
-    outputs: ['main' as unknown as NodeConnectionType],
+    outputs: ['main' as unknown as NodeConnectionType, 'main' as unknown as NodeConnectionType],
+    outputNames: ['Main', 'Error'],
     credentials: [{ name: 'imapCredentials', required: true }],
     properties: [
       {
@@ -54,6 +55,22 @@ export class IonosImap implements INodeType {
           { name: 'Delete', value: 'delete', description: 'Delete message' }
         ],
         default: 'searchByMessageId',
+      },
+
+      // Optional dynamic credential link/guard
+      {
+        displayName: 'Account Field (optional)',
+        name: 'accountField',
+        type: 'string',
+        default: '',
+        description: 'Expression resolving to account/email from upstream, e.g. {{$json.account}}',
+      },
+      {
+        displayName: 'Require Account Matches Credential User',
+        name: 'enforceAccountMatch',
+        type: 'boolean',
+        default: false,
+        description: 'If enabled and Account Field is set, mismatched items are routed to Error output',
       },
       { displayName: 'Mailbox', name: 'mailbox', type: 'string', default: 'INBOX', displayOptions: { show: { operation: ['searchByMessageId','addKeywords','removeKeywords','move','copy','delete'] } } },
 
@@ -113,10 +130,29 @@ export class IonosImap implements INodeType {
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     const items = this.getInputData();
     const out: INodeExecutionData[] = [];
+    const errs: INodeExecutionData[] = [];
 
     for (let i = 0; i < items.length; i++) {
       const op = this.getNodeParameter('operation', i) as string;
       const mailbox = (op !== 'listMailboxes') ? (this.getNodeParameter('mailbox', i) as string) : '';
+
+      // Optional enforcement that selected credential user matches upstream account field
+      const enforce = this.getNodeParameter('enforceAccountMatch', i) as boolean;
+      const accField = (this.getNodeParameter('accountField', i) as string) || '';
+      if (enforce && accField) {
+        try {
+          const cred = await this.getCredentials('imapCredentials') as any;
+          const upstream = String(accField).toLowerCase();
+          const credUser = String(cred?.user || '').toLowerCase();
+          if (upstream && credUser && upstream !== credUser) {
+            errs.push({ json: { error: 'credential_mismatch', account: accField, credentialUser: cred?.user || '', itemIndex: i } });
+            continue;
+          }
+        } catch (_) {
+          errs.push({ json: { error: 'credential_not_found', account: accField || null, itemIndex: i } });
+          continue;
+        }
+      }
 
       const client = await getClient.call(this);
       try {
@@ -220,7 +256,7 @@ export class IonosImap implements INodeType {
       }
     }
 
-    return [out];
+    return [out, errs];
   }
 }
 

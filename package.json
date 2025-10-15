@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-imap-manager",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "n8n node to manage IMAP mail: search by Message-ID, add keywords, move, copy, delete.",
   "author": "James Forwood",
   "license": "MIT",
